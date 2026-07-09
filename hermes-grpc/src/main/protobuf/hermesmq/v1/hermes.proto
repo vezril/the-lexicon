@@ -80,9 +80,16 @@ message PublishRequest {
   map<string, string> attributes = 3;
   // Optional per-message TTL in seconds (0 = use the configured default / none).
   int32 ttl_seconds = 4;
+  // Optional producer idempotency key. When dedup is enabled on the broker, a
+  // retry carrying the same key for the same topic within the dedup window is
+  // collapsed to the original publish. Empty = no key (no deduplication).
+  string idempotency_key = 5;
 }
 message PublishResponse {
   string message_id = 1;
+  // True when this publish was recognised as a duplicate within the dedup
+  // window and collapsed to the original message (message_id is the original).
+  bool deduplicated = 2;
 }
 
 message CreateSubscriptionRequest {

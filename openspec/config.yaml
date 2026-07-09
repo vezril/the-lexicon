@@ -1,0 +1,17 @@
+schema: spec-driven
+
+context: |
+  Lexicon — the shared vocabulary of the Codex constellation: the single source of truth for
+  the cross-service message contracts. Not a runtime service; a schema + codegen repo (pairs
+  with Codex, the platform "book").
+
+  The problem it solves: the async HermesMQ message schemas (ProcessMediaJob, MediaProcessed,
+  TagJob, TagSuggestions, future catalog.events) are used by services in TWO languages —
+  Scala (Artemis, Hephaestus) and Python (Argus) — so a shared Scala library won't do. Lexicon
+  is the language-neutral definition that generates types for both.
+
+  Chosen approach: **protobuf** as the one IDL (already in the stack via Apollo gRPC; both Scala
+  (ScalaPB) and Python already carry protobuf tooling for Apollo). Wire = protobuf's canonical
+  **JSON encoding** over Hermes (readable/debuggable). Lexicon's CI generates + publishes a
+  Scala artifact (GitHub Packages) and a Python package; services pin a SemVer version. Drift
+  becomes a compile/type error, not a runtime surprise.

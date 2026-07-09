@@ -44,7 +44,7 @@ lazy val githubPackages = Seq(
 
 lazy val lexiconGrpc = (project in file("."))
   .enablePlugins(PekkoGrpcPlugin)
-  .aggregate(messages)
+  .aggregate(messages, hermesGrpc)
   .settings(githubPackages)
   .settings(
     name := "lexicon-grpc",
@@ -57,6 +57,27 @@ lazy val lexiconGrpc = (project in file("."))
       "org.apache.pekko" %% "pekko-http" % pekkoHttpVersion,
       "org.apache.pekko" %% "pekko-http-core" % pekkoHttpVersion,
       // Client stubs use pekko-discovery (GrpcClientSettings); align its version.
+      "org.apache.pekko" %% "pekko-discovery" % pekkoVersion
+    )
+  )
+
+// HermesMQ gRPC contract (topic admin + pub/sub, incl. server-streaming and
+// bidirectional consume). A separate artifact from lexicon-grpc (Apollo) so
+// consumers pull only the surface they speak. Same codegen as lexicon-grpc — the
+// SERVER power API (handlers receive Metadata for auth) + CLIENT stubs — with the
+// `me.cference.hermesmq.grpc` package preserved, so the move is drop-in for the
+// HermesMQ server.
+lazy val hermesGrpc = (project in file("hermes-grpc"))
+  .enablePlugins(PekkoGrpcPlugin)
+  .settings(githubPackages)
+  .settings(
+    name := "lexicon-hermes-grpc",
+    pekkoGrpcGeneratedSources := Seq(PekkoGrpc.Server, PekkoGrpc.Client),
+    pekkoGrpcCodeGeneratorSettings += "server_power_apis",
+    libraryDependencies ++= Seq(
+      "org.apache.pekko" %% "pekko-stream" % pekkoVersion,
+      "org.apache.pekko" %% "pekko-http" % pekkoHttpVersion,
+      "org.apache.pekko" %% "pekko-http-core" % pekkoHttpVersion,
       "org.apache.pekko" %% "pekko-discovery" % pekkoVersion
     )
   )

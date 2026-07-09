@@ -13,9 +13,9 @@ mismatch is a **build error, not a runtime surprise**.
 
 | Contract kind | Status | Wire |
 | --- | --- | --- |
-| **gRPC — Apollo object-storage API** (`apollostorage.grpc`) | ✅ Scala stubs generated + `publishLocal` | binary protobuf (gRPC) |
+| **gRPC — Apollo object-storage API** (`apollostorage.grpc`), Scala | ✅ jar published to GitHub Packages | binary protobuf (gRPC) |
+| **gRPC — Apollo object-storage API**, Python client (grpcio) for Argus | ✅ package in [`python/`](python/); wheel on each Release | binary protobuf (gRPC) |
 | Async message contracts (ProcessMediaJob, MediaProcessed, TagJob, …) | ⏳ planned (`design-lexicon`) | protobuf canonical JSON (over Hermes) |
-| Python client stubs (grpcio) for Argus | ⏳ planned | — |
 
 The Apollo gRPC service definition lives at
 [`src/main/protobuf/apollostorage/grpc/object_api.proto`](src/main/protobuf/apollostorage/grpc/object_api.proto)
@@ -54,9 +54,8 @@ Services pin an exact Lexicon version.
 
 ## Roadmap
 
-- Publish the Scala jar to **GitHub Packages** (like HermesMQ) + set up CI.
-- **Python** gRPC client (grpcio/betterproto) package for Argus.
 - The **async message contracts** (`design-lexicon`) + `buf` lint / breaking-change checks.
+- Argus adopts the published Python client (`refactor-grpc-into-lexicon` §3.3, Argus's repo).
 
 ## License
 

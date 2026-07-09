@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lexicon-grpc"
+description = "Generated gRPC clients for the Codex constellation's wire contracts (Apollo object-storage API)."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+authors = [{ name = "Calvin Ference" }]
+dynamic = ["version"]
+dependencies = ["grpcio>=1.60", "protobuf>=4.25"]
+
+[project.urls]
+Homepage = "https://github.com/vezril/the-lexicon"
+
+# Version derived from the repo's git tags (setuptools_scm via hatch-vcs), rooted at
+# the repo above this subdirectory — so a `vX.Y.Z` tag yields Python version X.Y.Z,
+# matching the Scala jar (one version for the whole IDL).
+[tool.hatch.version]
+source = "vcs"
+raw-options = { root = ".." }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/apollostorage"]

@@ -23,10 +23,14 @@ apollo-storage + clients.
 
 - [x] 2.1 Generate Scala gRPC **server** stub (ScalaPB/pekko-grpc) + Scala **client** stubs
   (mirrors apollo's pekko-grpc 1.1.1 + `server_power_apis`; proven by compile + apollo consuming it)
-- [ ] 2.2 Generate Python gRPC **client** (grpcio) for Argus
+- [x] 2.2 Generate Python gRPC **client** (grpcio) for Argus
+  (`python/` package `lexicon-grpc`, import `apollostorage.grpc`; proven end-to-end — the client
+  round-trips CreateBucket/streaming Put+Get/HeadObject/NOT_FOUND against a real apollo-storage
+  v0.7.0 container)
 - [ ] 2.3 Publish gRPC stubs in the same SemVer Scala jar + Python package as the messages
-  (**Scala jar published** to GitHub Packages as `io.codex:lexicon-grpc_3:0.1.0` via the `v0.1.0`
-  release workflow; Python package still pending)
+  (**Scala jar published** as `io.codex:lexicon-grpc_3:0.1.0`; **Python** package builds
+  (wheel+sdist, hatch-vcs tag-driven) and the release workflow now attaches it to the GitHub
+  Release — publishes on the next `vX.Y.Z` tag)
 
 ## 3. Adopt (coordinated migration)
 

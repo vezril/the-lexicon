@@ -19,7 +19,7 @@ gated on this being published.
 
 - [x] 3.1 Ensure the release workflow publishes `lexicon-hermes-grpc` alongside the other artifacts on a `vX.Y.Z` tag
 - [x] 3.2 README: add a capability row + short section for the Hermes gRPC contract (mirroring the Apollo row); note the `me.cference.hermesmq.grpc` package is preserved
-- [ ] 3.3 Cut a release tag so HermesMQ's adopt change can pin the published version
+- [x] 3.3 Cut a release tag so HermesMQ's adopt change can pin the published version
 
 ## 4. Verify (the real proof is downstream)
 

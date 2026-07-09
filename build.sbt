@@ -1,12 +1,11 @@
 // ---------------------------------------------------------------------------
 // Lexicon — the constellation's shared wire contracts (build-time only; no
-// runtime service). This module owns the gRPC service contracts: it holds the
-// .proto and publishes the generated stubs so apollo-storage (server) and its
-// Scala clients all build against ONE definition (design refactor-grpc-into-lexicon).
-//
-// Codegen mirrors apollo-storage exactly (pekko-grpc 1.1.1, server_power_apis,
-// Server+Client, pekko 1.2.0) so the stubs are drop-in for the server that used
-// to generate them locally.
+// runtime service). Two published artifacts, one version:
+//   lexicon-grpc     — the Apollo object-storage gRPC service stubs (pekko-grpc),
+//                      consumed by apollo-storage (server) + its Scala clients.
+//   lexicon-messages — the async HermesMQ message contracts (ScalaPB + canonical
+//                      JSON), consumed by Artemis / Hephaestus.
+// Python equivalents live under python/. Version derived from git tags (dynver).
 // ---------------------------------------------------------------------------
 
 ThisBuild / scalaVersion := "3.3.4" // Scala 3 LTS, matching the constellation
@@ -29,8 +28,24 @@ ThisBuild / scalacOptions ++= Seq(
 lazy val pekkoVersion = "1.2.0"
 lazy val pekkoHttpVersion = "1.2.0"
 
+// Publish both artifacts to GitHub Packages (like HermesMQ). Only exercised by the
+// external publish step; `publishLocal` needs none of this.
+lazy val githubPackages = Seq(
+  publishTo := Some(
+    "GitHub Packages" at "https://maven.pkg.github.com/vezril/the-lexicon"
+  ),
+  credentials += Credentials(
+    "GitHub Package Registry",
+    "maven.pkg.github.com",
+    "vezril",
+    sys.env.getOrElse("GITHUB_TOKEN", "")
+  )
+)
+
 lazy val lexiconGrpc = (project in file("."))
   .enablePlugins(PekkoGrpcPlugin)
+  .aggregate(messages)
+  .settings(githubPackages)
   .settings(
     name := "lexicon-grpc",
     // Generate the Apollo object-storage SERVER (power API, so handlers receive
@@ -43,16 +58,20 @@ lazy val lexiconGrpc = (project in file("."))
       "org.apache.pekko" %% "pekko-http-core" % pekkoHttpVersion,
       // Client stubs use pekko-discovery (GrpcClientSettings); align its version.
       "org.apache.pekko" %% "pekko-discovery" % pekkoVersion
-    ),
-    // Publish to GitHub Packages (like HermesMQ). Only exercised by the external
-    // publish step; `publishLocal` needs none of this.
-    publishTo := Some(
-      "GitHub Packages" at "https://maven.pkg.github.com/vezril/the-lexicon"
-    ),
-    credentials += Credentials(
-      "GitHub Package Registry",
-      "maven.pkg.github.com",
-      "vezril",
-      sys.env.getOrElse("GITHUB_TOKEN", "")
+    )
+  )
+
+// Async message contracts. No gRPC service — pekko-grpc generates just the ScalaPB
+// message case classes; scalapb-json4s provides protobuf's canonical JSON encoding
+// (the HermesMQ wire format).
+lazy val messages = (project in file("messages"))
+  .enablePlugins(PekkoGrpcPlugin)
+  .settings(githubPackages)
+  .settings(
+    name := "lexicon-messages",
+    pekkoGrpcGeneratedSources := Seq(PekkoGrpc.Client),
+    libraryDependencies ++= Seq(
+      "com.thesamet.scalapb" %% "scalapb-json4s" % "0.12.1",
+      "org.scalatest" %% "scalatest" % "3.2.19" % Test
     )
   )

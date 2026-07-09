@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package codex.messages.v1;
+
+// A reference to an object in Apollo (bucket + key). Shared by the media and tag
+// pipelines.
+message ObjectRef {
+  string bucket = 1;
+  string object = 2;
+}
+
+// Artemis -> Hephaestus (topic `media.process`): generate derivatives + metadata
+// for a media object.
+message ProcessMediaJob {
+  string job_id = 1;
+  string post_id = 2;
+  ObjectRef source = 3;
+  string media_type = 4;     // e.g. "image", "video"
+  string content_type = 5;   // MIME type
+  repeated string want = 6;  // requested derivative kinds (e.g. "thumb", "sample")
+}
+
+// Extracted media attributes. Optional fields are absent (not zero) when N/A.
+message MediaMetadata {
+  int32 width = 1;
+  int32 height = 2;
+  optional double duration_seconds = 3; // video/audio only
+  optional double fps = 4;              // video only
+  string md5 = 5;
+  string filetype = 6;                  // detected container/format
+  optional bool has_audio = 7;          // video only
+}
+
+// One generated derivative and where it was stored.
+message Derivative {
+  string kind = 1;             // e.g. "thumb", "sample", "preview"
+  ObjectRef ref = 2;           // location in Apollo
+  int32 width = 3;
+  int32 height = 4;
+  optional string variant = 5; // e.g. "webp"
+  optional string codec = 6;   // video codec, when applicable
+}
+
+// Hephaestus -> Artemis (topic `media.processed`): processing succeeded.
+message MediaProcessed {
+  string job_id = 1;
+  string post_id = 2;
+  string status = 3;                   // e.g. "ok"
+  MediaMetadata metadata = 4;
+  string phash = 5;                    // perceptual hash (near-dup / find-similar)
+  repeated Derivative derivatives = 6;
+  int32 spec_version = 7;              // derivative-spec version (reprocessing)
+}
+
+// A structured job error.
+message JobError {
+  string code = 1;
+  string message = 2;
+}
+
+// Hephaestus -> Artemis (topic `media.failed`): processing failed.
+message MediaFailed {
+  string job_id = 1;
+  string post_id = 2;
+  JobError error = 3;
+  bool retriable = 4;
+}

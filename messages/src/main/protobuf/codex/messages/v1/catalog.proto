@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package codex.messages.v1;
+
+// RESERVED for the future Ariadne extraction — a planned analytics consumer of
+// `catalog.events` (Artemis emits; Ariadne consumes, rebuildable from history).
+//
+// These shapes are placeholders that reserve the namespace and field numbering so
+// they can evolve additively later. They are NOT yet produced or consumed by any
+// service; treat them as unstable until Ariadne ships.
+
+message PostCreated {
+  string post_id = 1;
+  string created_at = 2; // RFC 3339 timestamp
+}
+
+message TagsChanged {
+  string post_id = 1;
+  repeated string added = 2;
+  repeated string removed = 3;
+}
+
+message PostPurged {
+  string post_id = 1;
+  string purged_at = 2; // RFC 3339 timestamp
+}

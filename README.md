@@ -15,7 +15,8 @@ mismatch is a **build error, not a runtime surprise**.
 | --- | --- | --- |
 | **gRPC — Apollo object-storage API** (`apollostorage.grpc`), Scala | ✅ jar published to GitHub Packages | binary protobuf (gRPC) |
 | **gRPC — Apollo object-storage API**, Python client (grpcio) for Argus | ✅ package in [`python/`](python/); wheel on each Release | binary protobuf (gRPC) |
-| Async message contracts (ProcessMediaJob, MediaProcessed, TagJob, …) | ⏳ planned (`design-lexicon`) | protobuf canonical JSON (over Hermes) |
+| **Async message contracts** (`codex.messages.v1`), Scala | ✅ `lexicon-messages` jar (ScalaPB + json4s) | protobuf canonical JSON (over Hermes) |
+| **Async message contracts**, Python | ✅ in the [`python/`](python/) package | protobuf canonical JSON (over Hermes) |
 
 The Apollo gRPC service definition lives at
 [`src/main/protobuf/apollostorage/grpc/object_api.proto`](src/main/protobuf/apollostorage/grpc/object_api.proto)
@@ -46,6 +47,37 @@ trait (+ `ObjectApiPowerApiHandler`), the `ObjectApiClient`, and the service des
 reflection. The consumer implements the trait; it runs no Apollo-service codegen of its own.
 `apollo-storage`'s `adopt-lexicon-grpc-contracts` change does exactly this.
 
+## Message contracts (async, over Hermes)
+
+The cross-service async messages — `ProcessMediaJob`, `MediaProcessed`, `MediaFailed`, `TagJob`,
+`TagSuggestions` (package `codex.messages.v1`), with `catalog.events` reserved for Ariadne — are
+defined in [`messages/`](messages/src/main/protobuf/codex/messages/v1) and published as a separate
+artifact, `io.codex %% lexicon-messages`, plus the Python package.
+
+The **wire format on HermesMQ is protobuf's canonical JSON** (camelCase, readable) — the type is
+schema-generated but the bytes on the queue are debuggable. Both languages produce byte-identical
+JSON for the same message (verified cross-language).
+
+```scala
+// Scala (Artemis / Hephaestus) — scalapb-json4s
+import scalapb.json4s.{JsonFormat, Parser}
+import codex.messages.v1.*
+val json = JsonFormat.toJsonString(TagJob(postId = "p", sample = Some(ObjectRef("media", "p/a.jpg"))))
+val job  = new Parser().ignoringUnknownFields.fromJsonString[TagJob](json) // tolerant = forward-compatible
+```
+
+```python
+# Python (Argus) — google.protobuf.json_format
+from google.protobuf import json_format
+from codex.messages.v1 import tag_pb2 as tag
+json = json_format.MessageToJson(tag.TagJob(post_id="p"))
+job  = json_format.Parse(json, tag.TagJob(), ignore_unknown_fields=True)  # tolerant = forward-compatible
+```
+
+**Forward compatibility is opt-in:** parse with the *tolerant* parser
+(`ignoringUnknownFields` / `ignore_unknown_fields=True`) so a consumer on an older minor version
+still accepts a message carrying a field added in a newer one.
+
 ## Versioning
 
 One SemVer + protobuf-evolution policy for every contract: additive changes (new optional
@@ -54,8 +86,9 @@ Services pin an exact Lexicon version.
 
 ## Roadmap
 
-- The **async message contracts** (`design-lexicon`) + `buf` lint / breaking-change checks.
-- Argus adopts the published Python client (`refactor-grpc-into-lexicon` §3.3, Argus's repo).
+- `buf` lint / breaking-change checks in CI.
+- Adoption in each consumer's repo: Argus (Python), Artemis + Hephaestus (Scala) depend on the
+  published Lexicon artifacts instead of hand-maintained copies.
 
 ## License
 

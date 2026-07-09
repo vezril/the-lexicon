@@ -22,9 +22,9 @@ jobs:
           fetch-depth: 0 # sbt-dynver needs full history + tags
       - uses: ./.github/actions/setup-scala
       - name: Check formatting
-        run: sbt -batch scalafmtSbtCheck
-      - name: Compile
-        run: sbt -batch compile
+        run: sbt -batch scalafmtCheckAll scalafmtSbtCheck
+      - name: Compile & test
+        run: sbt -batch compile test
 
   python:
     name: Python stubs

@@ -23,4 +23,4 @@ source = "vcs"
 raw-options = { root = ".." }
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/apollostorage"]
+packages = ["src/apollostorage", "src/codex"]

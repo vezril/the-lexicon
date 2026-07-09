@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package codex.messages.v1;
+
+import "codex/messages/v1/media.proto"; // ObjectRef
+
+// Artemis -> Argus (topic `media.tag`): suggest tags for a post's sample.
+message TagJob {
+  string post_id = 1;
+  ObjectRef sample = 2;
+  string media_type = 3;
+}
+
+// One suggested tag with the model's confidence.
+message TagSuggestion {
+  string tag = 1;
+  optional string category = 2; // namespace: character, artist, copyright, …
+  double confidence = 3;
+  string source = 4;            // which model produced it (e.g. "wd-tagger-v3")
+}
+
+// Argus -> Artemis (topic `media.tags.suggested`): suggestions for human review.
+message TagSuggestions {
+  string post_id = 1;
+  repeated TagSuggestion suggestions = 2;
+  optional string rating = 3; // suggested content rating, when inferred
+  string status = 4;          // e.g. "ok", "needs_review"
+}

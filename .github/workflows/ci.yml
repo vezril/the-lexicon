@@ -1,0 +1,27 @@
+name: CI
+
+# Verifies every push and pull request: formatting + that the gRPC stubs
+# generate and compile from the shared .proto.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Generate & compile stubs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # sbt-dynver needs full history + tags
+      - uses: ./.github/actions/setup-scala
+      - name: Check formatting
+        run: sbt -batch scalafmtSbtCheck
+      - name: Compile
+        run: sbt -batch compile

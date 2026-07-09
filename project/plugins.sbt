@@ -5,3 +5,6 @@ addSbtPlugin("org.apache.pekko" % "pekko-grpc-sbt-plugin" % "1.1.1")
 
 // Formatting, to match sibling repos' CI.
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.4")
+
+// Version derived from git tags (as apollo-storage does) — no version literal.
+addSbtPlugin("com.github.sbt" % "sbt-dynver" % "5.1.0")

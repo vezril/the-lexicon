@@ -13,9 +13,9 @@ ThisBuild / scalaVersion := "3.3.4" // Scala 3 LTS, matching the constellation
 ThisBuild / organization := "io.codex"
 ThisBuild / organizationName := "Codex"
 ThisBuild / licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT"))
-// Version literal for now; a real repo derives this from git tags (sbt-dynver),
-// as apollo-storage does. Bumped per the shared SemVer + protobuf-evolution policy.
-ThisBuild / version := "0.1.0"
+// Version derived from git tags via sbt-dynver (no literal committed); a `vX.Y.Z`
+// tag publishes `X.Y.Z`. Follows the shared SemVer + protobuf-evolution policy.
+ThisBuild / dynverSeparator := "-"
 
 ThisBuild / scalacOptions ++= Seq(
   "-deprecation",

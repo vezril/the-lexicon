@@ -15,6 +15,7 @@ mismatch is a **build error, not a runtime surprise**.
 | --- | --- | --- |
 | **gRPC — Apollo object-storage API** (`apollostorage.grpc`), Scala | ✅ jar published to GitHub Packages | binary protobuf (gRPC) |
 | **gRPC — Apollo object-storage API**, Python client (grpcio) for Argus | ✅ package in [`python/`](python/); wheel on each Release | binary protobuf (gRPC) |
+| **gRPC — HermesMQ API** (`hermesmq.v1`), Scala | ✅ `lexicon-hermes-grpc` jar (server power API + client) | binary protobuf (gRPC) |
 | **Async message contracts** (`codex.messages.v1`), Scala | ✅ `lexicon-messages` jar (ScalaPB + json4s) | protobuf canonical JSON (over Hermes) |
 | **Async message contracts**, Python | ✅ in the [`python/`](python/) package | protobuf canonical JSON (over Hermes) |
 
@@ -23,6 +24,15 @@ The Apollo gRPC service definition lives at
 — migrated out of `apollo-storage` so the server and its clients all generate from one source
 (design `refactor-grpc-into-lexicon`). The protobuf `package apollostorage.grpc` is **preserved**,
 so the move is source-compatible for the server.
+
+The **HermesMQ** gRPC service definition (`TopicAdminService` + `PubSubService`, incl.
+server-streaming `StreamMessages` and bidirectional `Consume`) lives at
+[`hermes-grpc/src/main/protobuf/hermesmq/v1/hermes.proto`](hermes-grpc/src/main/protobuf/hermesmq/v1/hermes.proto)
+— migrated out of `hermesmq` (change `add-hermes-grpc-contract`). The protobuf `package hermesmq.v1`
+and `java_package me.cference.hermesmq.grpc` are **preserved**, so it is source-compatible for the
+HermesMQ server. It publishes as its own artifact, `io.codex %% lexicon-hermes-grpc`, so an Apollo
+consumer never pulls Hermes stubs and vice-versa. HermesMQ adopts it via its
+`adopt-lexicon-grpc-contracts` change.
 
 ## Build
 

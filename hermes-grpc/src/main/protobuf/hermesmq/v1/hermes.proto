@@ -101,6 +101,9 @@ message CreateSubscriptionResponse {}
 message PullRequest {
   string subscription_id = 1;
   int32 max = 2;
+  // Optional consumer id for observability (active-consumer metric + log MDC).
+  // Empty = anonymous; does not affect which messages are leased.
+  string consumer_id = 3;
 }
 message PullResponse {
   repeated PulledMessage messages = 1;
@@ -111,6 +114,8 @@ message PullResponse {
 message StreamRequest {
   string subscription_id = 1;
   int32 max = 2;
+  // Optional consumer id for observability (see PullRequest.consumer_id).
+  string consumer_id = 3;
 }
 
 // Bidirectional consume: the first request MUST be a ConsumeStart; subsequent
@@ -118,6 +123,8 @@ message StreamRequest {
 message ConsumeStart {
   string subscription_id = 1;
   int32 max = 2;
+  // Optional consumer id for observability (see PullRequest.consumer_id).
+  string consumer_id = 3;
 }
 message ConsumeAck {
   repeated string ack_ids = 1;

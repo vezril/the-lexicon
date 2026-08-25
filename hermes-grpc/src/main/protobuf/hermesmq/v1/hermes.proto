@@ -84,6 +84,9 @@ message PublishRequest {
   // retry carrying the same key for the same topic within the dedup window is
   // collapsed to the original publish. Empty = no key (no deduplication).
   string idempotency_key = 5;
+  // Optional producer id for observability (active-producer metric + log MDC).
+  // Empty = anonymous; does not affect whether/how the message is published.
+  string producer_id = 6;
 }
 message PublishResponse {
   string message_id = 1;

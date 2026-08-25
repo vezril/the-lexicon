@@ -17,8 +17,8 @@
 - [x] Publish the module in both language artifacts (so services can source names instead of re-declaring).
 
 ## 4. Release
-- [ ] Tag a `vX.Y.Z` release so `lexicon-hermes-grpc` (+ constants) publish to GitHub Packages / the Python index.
-- [ ] Note the new version in the rollout so per-service `add-request-tracing` changes can pin it.
+- [x] Tag a `vX.Y.Z` release (v0.8.0) so `lexicon-hermes-grpc` (+ constants) publish to GitHub Packages / the Python index.
+- [x] Note the new version in the rollout (v0.8.0 — services pin it) so per-service `add-request-tracing` changes can pin it.
 
 ## 5. Verify
 - [x] `openspec validate add-request-tracing`.

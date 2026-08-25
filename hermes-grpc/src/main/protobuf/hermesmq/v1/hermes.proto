@@ -19,6 +19,12 @@ message Message {
   bytes payload = 2;
   map<string, string> attributes = 3;
   string publish_time = 4;
+  // Request-tracing correlation id (request-correlation). Carried across service
+  // hops so one id stitches a logical operation across the constellation: a
+  // producer sets it on publish, the broker carries it verbatim (never strips or
+  // mints), a consumer reads it on delivery and adopts it. Empty = none supplied,
+  // which the consumer treats as "mint one". See CorrelationNames.Envelope.
+  string correlation_id = 5;
 }
 
 // One outstanding message returned by a pull.
@@ -87,6 +93,11 @@ message PublishRequest {
   // Optional producer id for observability (active-producer metric + log MDC).
   // Empty = anonymous; does not affect whether/how the message is published.
   string producer_id = 6;
+  // Request-tracing correlation id the producer sets on publish (request-correlation).
+  // The broker carries it onto the delivered `Message.correlation_id` verbatim —
+  // never mints, never strips — so a consumer can adopt it. Empty = none.
+  // (Field 7: 6 is `producer_id`, added after this change was drafted.)
+  string correlation_id = 7;
 }
 message PublishResponse {
   string message_id = 1;

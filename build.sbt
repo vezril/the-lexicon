@@ -44,7 +44,7 @@ lazy val githubPackages = Seq(
 
 lazy val lexiconGrpc = (project in file("."))
   .enablePlugins(PekkoGrpcPlugin)
-  .aggregate(messages, hermesGrpc)
+  .aggregate(messages, hermesGrpc, common)
   .settings(githubPackages)
   .settings(
     name := "lexicon-grpc",
@@ -95,4 +95,16 @@ lazy val messages = (project in file("messages"))
       "com.thesamet.scalapb" %% "scalapb-json4s" % "0.12.1",
       "org.scalatest" %% "scalatest" % "3.2.19" % Test
     )
+  )
+
+// Shared request-correlation NAMES (request-correlation). Deliberately dependency-free — no
+// proto/grpc/pekko — so a pure-HTTP or non-gRPC consumer can source the canonical names from one
+// place instead of re-declaring literals. The first hand-written source in an otherwise codegen-only
+// repo (a small, deliberate exception: codegen can't emit string constants). Published like the
+// generated artifacts.
+lazy val common = (project in file("common"))
+  .settings(githubPackages)
+  .settings(
+    name := "lexicon-common",
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % Test
   )

@@ -20,6 +20,8 @@ final class CorrelationNamesSpec extends AnyFunSuite {
   test("the HTTP header and gRPC metadata are the same header in different casing") {
     assert(CorrelationNames.HttpHeader.equalsIgnoreCase(CorrelationNames.GrpcMeta))
     assert(CorrelationNames.HttpHeader != CorrelationNames.GrpcMeta) // casing differs by transport
-    assert(CorrelationNames.GrpcMeta == CorrelationNames.GrpcMeta.toLowerCase) // gRPC md must be lower-case
+    assert(
+      CorrelationNames.GrpcMeta == CorrelationNames.GrpcMeta.toLowerCase
+    ) // gRPC md must be lower-case
   }
 }

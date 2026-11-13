@@ -25,8 +25,8 @@ runtime mismatch.
 ## What Changes
 
 - **message-contracts** (new): the protobuf definitions for `ProcessMediaJob`, `MediaProcessed`,
-  `MediaFailed`, `TagJob`, `TagSuggestions` (and reserved `catalog.events`), with the JSON-wire
-  mapping and SemVer + protobuf evolution rules.
+  `MediaFailed`, `TagJob`, `TagSuggestions`, with the JSON-wire mapping and SemVer + protobuf
+  evolution rules. (`catalog.events` was also reserved here; dropped 2026-11-13 per issue #7.)
 - **codegen-and-publishing** (new): generate Scala (ScalaPB) + Python from the `.proto`; publish a
   versioned Scala artifact + Python package; services depend on a pinned version.
 

@@ -8,8 +8,10 @@ mode; no implementation.
 ```
    ProcessMediaJob / MediaProcessed / MediaFailed   Artemis (Scala) ⟷ Hephaestus (Scala)
    TagJob / TagSuggestions                          Artemis (Scala) ⟷ Argus (PYTHON)
-   catalog.events (reserved, future)                Artemis (Scala) → Ariadne
 ```
+
+(`catalog.events` was reserved here for an Artemis→Ariadne analytics feed that was never built;
+dropped 2026-11-13 per issue #7, since "Ariadne" now names the Product Catalog service.)
 
 Two languages → a shared Scala lib can't serve Argus. Lexicon is the **language-neutral
 source of truth** that generates types for both.
@@ -36,7 +38,6 @@ language across gRPC + messaging, with protobuf's field-number rules giving safe
    MediaFailed       jobId · postId · error{code,message} · retriable
    TagJob            postId · sample{bucket,object} · mediaType
    TagSuggestions    postId · suggestions[{tag,category?,confidence,source}] · rating? · status
-   catalog.events    (reserved for the Ariadne extraction: PostCreated · TagsChanged · PostPurged)
 ```
 
 (These consolidate the schemas currently described inline in the Hephaestus/Argus/auto-tagging

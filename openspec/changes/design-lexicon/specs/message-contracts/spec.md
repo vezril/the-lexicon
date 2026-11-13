@@ -8,9 +8,12 @@ backward-compatible evolution rules.
 ### Requirement: Protobuf definitions for the async messages
 
 Lexicon SHALL define, in protobuf, the cross-service message contracts — `ProcessMediaJob`,
-`MediaProcessed`, `MediaFailed`, `TagJob`, `TagSuggestions` — as the single source of truth,
-with `catalog.events` reserved for the future Ariadne extraction. Each service SHALL use the
-generated types rather than a hand-maintained copy.
+`MediaProcessed`, `MediaFailed`, `TagJob`, `TagSuggestions` — as the single source of truth. Each
+service SHALL use the generated types rather than a hand-maintained copy.
+
+Lexicon SHALL NOT reserve a namespace for a service that does not exist. (`catalog.events` was so
+reserved, for an Artemis→Ariadne analytics feed that was never built; dropped 2026-11-13 per issue
+#7, when the name turned out to belong to a different, shipping service.)
 
 #### Scenario: One definition, many consumers
 - **GIVEN** `MediaProcessed` defined once in Lexicon

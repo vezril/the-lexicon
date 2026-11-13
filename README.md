@@ -81,9 +81,16 @@ reflection. The consumer implements the trait; it runs no Apollo-service codegen
 ## Message contracts (async, over Hermes)
 
 The cross-service async messages — `ProcessMediaJob`, `MediaProcessed`, `MediaFailed`, `TagJob`,
-`TagSuggestions` (package `codex.messages.v1`), with `catalog.events` reserved for Ariadne — are
-defined in [`messages/`](messages/src/main/protobuf/codex/messages/v1) and published as a separate
-artifact, `io.codex %% lexicon-messages`, plus the Python package.
+`TagSuggestions` (package `codex.messages.v1`) — are defined in
+[`messages/`](messages/src/main/protobuf/codex/messages/v1) and published as a separate artifact,
+`io.codex %% lexicon-messages`, plus the Python package.
+
+> **`catalog.events` is no longer reserved here.** It held placeholders for an analytics consumer
+> of Artemis's media catalog that was never built, under the name Ariadne — which now belongs to
+> `ariadne-service`, the Product Catalog. The reservation was dropped in favour of the real service
+> (issue #7). The Product Catalog's own contract is **not yet landed**; it is proposed in
+> `ariadne-service`'s `docs/lexicon-proposal-catalog.proto`, and anything consuming those payloads
+> today is consuming a proposal.
 
 The **wire format on HermesMQ is protobuf's canonical JSON** (camelCase, readable) — the type is
 schema-generated but the bytes on the queue are debuggable. Both languages produce byte-identical

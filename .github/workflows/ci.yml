@@ -1,7 +1,8 @@
 name: CI
 
-# Verifies every push and pull request: formatting + that the gRPC stubs
-# generate and compile from the shared .proto.
+# Verifies every push and pull request: the .proto contracts lint and stay
+# backward-compatible with the last release, plus formatting and that the gRPC
+# stubs generate and compile from those .proto.
 on:
   push:
     branches: [main]
@@ -12,7 +13,41 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Pinned so a new buf release can't turn a green contract red on its own.
+  BUF_VERSION: 1.75.0
+
 jobs:
+  # The contract gate. Lexicon's whole job is being the constellation's shared
+  # wire format, so a breaking .proto edit must fail HERE — once a semver tag
+  # publishes, the jar and wheel are immutable and consumers are already pinned.
+  proto:
+    name: Proto lint & breaking-change check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the breaking check reads history to resolve its baseline tag
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: ${{ env.BUF_VERSION }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Lint
+        run: buf lint
+      - name: Breaking-change check against the last release
+        run: |
+          baseline="$(git tag -l 'v*' --sort=-v:refname | head -1)"
+          if [ -z "$baseline" ]; then
+            echo "No v* tag yet — nothing has been published that could break. Skipping."
+            exit 0
+          fi
+          echo "Comparing the working tree against $baseline"
+          # --against-config pins the HISTORICAL tree to today's module layout.
+          # Tags cut before buf.yaml existed carry no module definition of their
+          # own, so without this buf would read that tree as one root-level
+          # module and fail to resolve the protos' import paths.
+          buf breaking --against ".git#tag=${baseline}" --against-config buf.yaml
+
   build:
     name: Generate & compile stubs
     runs-on: ubuntu-latest

@@ -1,0 +1,41 @@
+version: v2
+
+# Three protobuf source roots, one per published artifact. Each is its own buf
+# module because imports inside a module resolve relative to its root (e.g.
+# messages' `import "codex/messages/v1/media.proto"`).
+#
+# Lint bar differs by module on purpose:
+#   - `messages` is OURS and still evolving  -> STANDARD (the full buf bar).
+#   - the two gRPC modules host surfaces INHERITED from apollo-storage and
+#     HermesMQ and deliberately kept byte-identical (the contracts moved here;
+#     they were not redesigned). STANDARD's naming rules — PACKAGE_VERSION_SUFFIX,
+#     SERVICE_SUFFIX, RPC_{REQUEST,RESPONSE}_STANDARD_NAME,
+#     RPC_REQUEST_RESPONSE_UNIQUE — would demand renames that break every
+#     consumer, so those modules sit at BASIC: every casing/structure rule still
+#     applies, only the rename-demanding conventions are dropped.
+modules:
+  # lexicon-messages — async HermesMQ message contracts
+  - path: messages/src/main/protobuf
+    lint:
+      use:
+        - STANDARD
+
+  # lexicon-hermes-grpc — HermesMQ topic admin + pub/sub (inherited surface)
+  - path: hermes-grpc/src/main/protobuf
+    lint:
+      use:
+        - BASIC
+
+  # lexicon-grpc — Apollo object-storage service (inherited surface)
+  - path: src/main/protobuf
+    lint:
+      use:
+        - BASIC
+
+# FILE is buf's strictest category: it catches both wire-incompatible changes
+# (changed/reused field numbers or types) and source-incompatible ones (renamed
+# fields/messages that break regenerated consumer code). Both matter here — the
+# published jars and wheels are what the constellation compiles against.
+breaking:
+  use:
+    - FILE

@@ -20,6 +20,9 @@ told why without reading HermesMQ's roadmap. `ariadne-service` is publishing `pr
 - `CreateTopicRequest` and `UpdateTopicRequest` gain `ttl_seconds`.
 - A `StartPosition` enum whose zero value is `UNSPECIFIED`, treated as `NOW` — so a client generated
   before this change keeps exactly its current behaviour.
+- `Topic` gains `ttl_seconds`, so the TTL is readable and not only writable.
+- `CreateSubscriptionResponse` gains `effective_start_from`, so a `start_from` a broker silently
+  dropped is distinguishable from one it honoured.
 
 All additive: new field numbers, nothing renamed or renumbered, no RPC signature changed.
 
@@ -34,8 +37,10 @@ All additive: new field numbers, nothing renamed or renumbered, no RPC signature
 
 ## Impact
 
-- **Contract:** three messages gain fields; one enum is added. Back-compatible in both directions —
+- **Contract:** five messages gain fields; one enum is added. Back-compatible in both directions —
   an old client omits the fields (zero = previous behaviour), and an old broker ignores them.
+  **For `start_from` that tolerance is a hazard rather than a courtesy**, since a dropped request
+  about history is unobservable, so `effective_start_from` makes the downgrade detectable.
 - **Consumers:** `hermesmq` bumps its pin and wires the fields through its gRPC services; no other
   service is required to change.
 - **Semantics the contract cannot enforce, so they are documented in the proto:** TTL resolution is

@@ -11,6 +11,13 @@ option java_multiple_files = true;
 message Topic {
   string topic_id = 1;
   map<string, string> labels = 2;
+  // The topic's current message TTL, so the TTL settable on create/update is
+  // also READABLE. Without it `GetTopic` cannot report the TTL and
+  // `UpdateTopicResponse.topic` would confirm an update while omitting the
+  // field just updated — and since `UpdateTopicRequest.ttl_seconds = 0` means
+  // "leave untouched", a caller could not discover the current value in order
+  // to decide. 0 = no topic TTL.
+  int32 ttl_seconds = 3;
 }
 
 // An immutable message envelope. publish_time is ISO-8601 UTC (mirrors REST).
@@ -142,7 +149,26 @@ message CreateSubscriptionRequest {
   // message already carries; never extends it. 0 = no subscription TTL.
   int32 ttl_seconds = 4;
 }
-message CreateSubscriptionResponse {}
+message CreateSubscriptionResponse {
+  // The start position the broker ACTUALLY applied — echoed because a dropped
+  // `start_from` is otherwise UNOBSERVABLE, and this is the one field where
+  // that matters.
+  //
+  // proto3 discards unknown fields, so a broker built against a contract
+  // without `start_from` silently ignores an EARLIEST request and creates a
+  // NOW subscription, returning success. For `ttl_seconds` that degradation is
+  // benign (you get the default); for `start_from` the request is a request
+  // ABOUT HISTORY, and losing it means the subscriber misses everything
+  // published before it existed — the exact failure back-delivery was built to
+  // prevent. That state is not hypothetical: every broker behaves this way
+  // until `hermesmq` bumps its pin and wires the field through.
+  //
+  // An old broker returns an empty response, which decodes as UNSPECIFIED, so
+  // a caller comparing this against what it asked for can tell "honoured" from
+  // "silently downgraded". A caller that asked for EARLIEST and reads back
+  // UNSPECIFIED SHOULD treat its back-delivery as NOT having happened.
+  StartPosition effective_start_from = 1;
+}
 
 message PullRequest {
   string subscription_id = 1;

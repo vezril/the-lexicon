@@ -2,8 +2,8 @@
 
 Buildout for the shared-contracts repo (build-time only; no runtime service).
 
-> **Status (2026-11-13):** everything inside this repo is DONE. `codex.messages.v1` (media + tag +
-> reserved catalog) generate to Scala (ScalaPB) and Python; canonical-JSON round-trip passes in
+> **Status (2026-11-13):** everything inside this repo is DONE. `codex.messages.v1` (media + tag)
+> generate to Scala (ScalaPB) and Python; canonical-JSON round-trip passes in
 > both, and the two produce **byte-identical** JSON for the same message (cross-language proof).
 > Both artifacts are **published**: the `v0.8.0` Release workflow pushed the Scala jars to GitHub
 > Packages and attached `lexicon_grpc-0.8.0` (wheel + sdist) to the GitHub Release (2.2). `buf` lint
@@ -18,7 +18,13 @@ Buildout for the shared-contracts repo (build-time only; no runtime service).
 ## 1. Contracts
 
 - [x] 1.1 `.proto` for ProcessMediaJob · MediaProcessed · MediaFailed · TagJob · TagSuggestions
-- [x] 1.2 reserve `catalog.events` (PostCreated · TagsChanged · PostPurged) for the Ariadne extraction
+- [x] 1.2 ~~reserve `catalog.events` (PostCreated · TagsChanged · PostPurged) for the Ariadne
+      extraction~~ — **SUPERSEDED 2026-11-13 (issue #7).** The reservation named an analytics
+      consumer of Artemis's media catalog that was never built; "Ariadne" now denotes
+      `ariadne-service`, the Product Catalog, which is shipping and is a *producer*. Calvin ruled
+      for the real service: the dead reservation was dropped and `catalog.proto` deleted (one
+      recorded `buf breaking` exception — the shapes were unconsumed but had shipped in
+      `lexicon-messages` 0.1.0–0.8.0). The Product Catalog's contract is NOT landed; see #7
 - [x] 1.3 lint/breaking-change checks (buf) in CI; field numbers never reused (`buf.yaml` v2
       workspace over all three proto roots; the `proto` CI job runs `buf lint` then
       `buf breaking --against` the latest `v*` tag, so a retyped or renumbered field fails the

@@ -39,3 +39,20 @@ modules:
 breaking:
   use:
     - FILE
+  # ONE-TIME, DELIBERATE EXCEPTION — see issue #7.
+  #
+  # `codex/messages/v1/catalog.proto` reserved PostCreated/TagsChanged/PostPurged for "the future
+  # Ariadne extraction", an analytics consumer of Artemis's media catalog that was never built. The
+  # name Ariadne now belongs to `ariadne-service`, the Product Catalog, which is shipping. Calvin
+  # ruled (2026-11-13) that the real service keeps the name and the dead reservation goes.
+  #
+  # The file said the shapes were "NOT yet produced or consumed by any service; treat them as
+  # unstable" — and they never were. But they shipped inside `lexicon-messages` 0.1.0 through
+  # 0.8.0, so `buf breaking` counts them as real: deleting the file, deleting the messages, and
+  # renaming the messages are all flagged (verified against v0.8.0). Hence this entry rather than
+  # a contortion of the design.
+  #
+  # Safe to DELETE once v0.9.0 is the oldest tag anyone compares against — at that point the
+  # reservation is gone from every baseline and nothing can trip the rule again.
+  ignore:
+    - messages/src/main/protobuf/codex/messages/v1/catalog.proto

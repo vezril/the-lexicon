@@ -45,6 +45,27 @@ sbt compile        # generate + compile the Scala gRPC stubs (server power API +
 sbt publishLocal   # publish io.codex:lexicon-grpc_3:<version> to ~/.ivy2/local
 ```
 
+### Contract checks (`buf`)
+
+CI's `proto` job gates every change to the `.proto` themselves. Run it before you push:
+
+```bash
+buf lint                                                   # naming + structure
+buf breaking --against ".git#tag=$(git tag -l 'v*' --sort=-v:refname | head -1)" \
+             --against-config buf.yaml                     # vs the last release
+```
+
+`buf.yaml` is a v2 workspace over the three proto roots. Two things to know:
+
+- **Lint bar differs by module.** `messages` is ours and still evolving, so it sits at `STANDARD`.
+  The Apollo and HermesMQ roots host surfaces that *moved* here unchanged, and `STANDARD` would
+  demand consumer-breaking renames (`apollostorage.grpc.v1`, `ObjectApiService`, a distinct
+  response type per RPC) — so they sit at `BASIC`, which keeps every casing/structure rule and
+  drops only the rename-demanding conventions.
+- **`--against-config` is required** when comparing against a tag older than `buf.yaml` itself:
+  that tree has no module config, so buf would otherwise read it as one root-level module and fail
+  to resolve the protos' imports.
+
 ## Consuming (JVM)
 
 ```scala

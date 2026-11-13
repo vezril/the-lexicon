@@ -11,6 +11,13 @@ option java_multiple_files = true;
 message Topic {
   string topic_id = 1;
   map<string, string> labels = 2;
+  // The topic's current message TTL, so the TTL settable on create/update is
+  // also READABLE. Without it `GetTopic` cannot report the TTL and
+  // `UpdateTopicResponse.topic` would confirm an update while omitting the
+  // field just updated — and since `UpdateTopicRequest.ttl_seconds = 0` means
+  // "leave untouched", a caller could not discover the current value in order
+  // to decide. 0 = no topic TTL.
+  int32 ttl_seconds = 3;
 }
 
 // An immutable message envelope. publish_time is ISO-8601 UTC (mirrors REST).
@@ -45,6 +52,12 @@ service TopicAdminService {
 message CreateTopicRequest {
   string topic_id = 1;
   map<string, string> labels = 2;
+  // Optional per-topic TTL applied to messages published to this topic
+  // (message-ttl). Resolution is SHORTEST WINS across the per-publish
+  // `ttl_seconds`, this, the subscription's, and the broker's global default:
+  // any layer may shorten a message's lifetime, none may extend it. 0 = no
+  // topic TTL. Negative is rejected rather than treated as off.
+  int32 ttl_seconds = 3;
 }
 message CreateTopicResponse {}
 
@@ -58,6 +71,11 @@ message GetTopicResponse {
 message UpdateTopicRequest {
   string topic_id = 1;
   map<string, string> labels = 2;
+  // Change the topic's TTL. Forward-looking only: a message's expiry is fixed
+  // when it is published, so this does not move the expiry of messages already
+  // published. 0 = leave the TTL untouched (clearing an existing TTL is
+  // deliberately not expressible — it would need a three-state field).
+  int32 ttl_seconds = 3;
 }
 message UpdateTopicResponse {
   Topic topic = 1;
@@ -106,11 +124,51 @@ message PublishResponse {
   bool deduplicated = 2;
 }
 
+// Where a new subscription starts reading its topic (subscription-back-delivery).
+//
+// UNSPECIFIED is NOW, so a client generated before this field existed keeps
+// exactly its previous behaviour.
+enum StartPosition {
+  START_POSITION_UNSPECIFIED = 0;
+  // Only messages published after the subscription was created.
+  START_POSITION_NOW = 1;
+  // Back-deliver the topic's retained history as well. NOTE: "earliest" means
+  // earliest STILL RETAINED — snapshot retention purges older journal events,
+  // so on a long-lived topic this is not everything ever published. The
+  // back-delivery is asynchronous and happens at most once per subscription.
+  START_POSITION_EARLIEST = 2;
+}
+
 message CreateSubscriptionRequest {
   string subscription_id = 1;
   string topic_id = 2;
+  // Default (UNSPECIFIED) = NOW, preserving pre-existing behaviour.
+  StartPosition start_from = 3;
+  // Optional per-subscription TTL, resolved at delivery. Shortens this
+  // subscription's copy of a message where it is earlier than the expiry the
+  // message already carries; never extends it. 0 = no subscription TTL.
+  int32 ttl_seconds = 4;
 }
-message CreateSubscriptionResponse {}
+message CreateSubscriptionResponse {
+  // The start position the broker ACTUALLY applied — echoed because a dropped
+  // `start_from` is otherwise UNOBSERVABLE, and this is the one field where
+  // that matters.
+  //
+  // proto3 discards unknown fields, so a broker built against a contract
+  // without `start_from` silently ignores an EARLIEST request and creates a
+  // NOW subscription, returning success. For `ttl_seconds` that degradation is
+  // benign (you get the default); for `start_from` the request is a request
+  // ABOUT HISTORY, and losing it means the subscriber misses everything
+  // published before it existed — the exact failure back-delivery was built to
+  // prevent. That state is not hypothetical: every broker behaves this way
+  // until `hermesmq` bumps its pin and wires the field through.
+  //
+  // An old broker returns an empty response, which decodes as UNSPECIFIED, so
+  // a caller comparing this against what it asked for can tell "honoured" from
+  // "silently downgraded". A caller that asked for EARLIEST and reads back
+  // UNSPECIFIED SHOULD treat its back-delivery as NOT having happened.
+  StartPosition effective_start_from = 1;
+}
 
 message PullRequest {
   string subscription_id = 1;

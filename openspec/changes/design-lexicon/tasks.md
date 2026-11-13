@@ -29,8 +29,10 @@ Buildout for the shared-contracts repo (build-time only; no runtime service).
 - [x] 1.3 lint/breaking-change checks (buf) in CI; field numbers never reused (`buf.yaml` v2
       workspace over all three proto roots; the `proto` CI job runs `buf lint` then
       `buf breaking --against` the latest `v*` tag, so a retyped or renumbered field fails the
-      build — verified by injecting one. `messages` lints at STANDARD; the two inherited gRPC
-      surfaces at BASIC, since STANDARD's naming rules would demand consumer-breaking renames)
+      build — verified by injecting one. All three modules lint at STANDARD; the two inherited
+      gRPC surfaces exempt the handful of naming rules that would demand consumer-breaking
+      renames, scoped per rule and per file via `ignore_only` so anything NEW still meets the
+      full bar)
 
 ## 2. Codegen + publish
 

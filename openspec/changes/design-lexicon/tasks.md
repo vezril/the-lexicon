@@ -22,14 +22,17 @@ Buildout for the shared-contracts repo (build-time only; no runtime service).
       extraction~~ — **SUPERSEDED 2026-11-13 (issue #7).** The reservation named an analytics
       consumer of Artemis's media catalog that was never built; "Ariadne" now denotes
       `ariadne-service`, the Product Catalog, which is shipping and is a *producer*. Calvin ruled
-      for the real service: the dead reservation was dropped and `catalog.proto` deleted (one
-      recorded `buf breaking` exception — the shapes were unconsumed but had shipped in
-      `lexicon-messages` 0.1.0–0.8.0). The Product Catalog's contract is NOT landed; see #7
+      for the real service: the dead reservation was dropped and `catalog.proto` deleted. Needed
+      one `buf breaking` exception at the time — the shapes were unconsumed but had shipped in
+      `lexicon-messages` 0.1.0–0.8.0 — now **retired**, since `v0.9.0` is the baseline and no
+      longer contains the file. The Product Catalog's contract is NOT landed; see #7
 - [x] 1.3 lint/breaking-change checks (buf) in CI; field numbers never reused (`buf.yaml` v2
       workspace over all three proto roots; the `proto` CI job runs `buf lint` then
       `buf breaking --against` the latest `v*` tag, so a retyped or renumbered field fails the
-      build — verified by injecting one. `messages` lints at STANDARD; the two inherited gRPC
-      surfaces at BASIC, since STANDARD's naming rules would demand consumer-breaking renames)
+      build — verified by injecting one. All three modules lint at STANDARD; the two inherited
+      gRPC surfaces exempt the handful of naming rules that would demand consumer-breaking
+      renames, scoped per rule and per file via `ignore_only` so anything NEW still meets the
+      full bar)
 
 ## 2. Codegen + publish
 

@@ -4,33 +4,64 @@ version: v2
 # module because imports inside a module resolve relative to its root (e.g.
 # messages' `import "codex/messages/v1/media.proto"`).
 #
-# Lint bar differs by module on purpose:
-#   - `messages` is OURS and still evolving  -> STANDARD (the full buf bar).
-#   - the two gRPC modules host surfaces INHERITED from apollo-storage and
-#     HermesMQ and deliberately kept byte-identical (the contracts moved here;
-#     they were not redesigned). STANDARD's naming rules — PACKAGE_VERSION_SUFFIX,
-#     SERVICE_SUFFIX, RPC_{REQUEST,RESPONSE}_STANDARD_NAME,
-#     RPC_REQUEST_RESPONSE_UNIQUE — would demand renames that break every
-#     consumer, so those modules sit at BASIC: every casing/structure rule still
-#     applies, only the rename-demanding conventions are dropped.
+# EVERY module is held to STANDARD, the full buf bar. The two gRPC modules host
+# surfaces INHERITED from apollo-storage and HermesMQ and deliberately kept
+# byte-identical (the contracts moved here; they were not redesigned), and a
+# handful of STANDARD's naming rules would demand renames that break every
+# consumer. Those are exempted PER RULE, PER FILE via `ignore_only` — not by
+# dropping the whole module to a lower category.
+#
+# The distinction is not pedantry. A blanket BASIC also exempts every FUTURE
+# addition: #10 added a new `StartPosition` enum to `hermesmq/v1`, and under
+# BASIC nothing would have checked that its values were prefixed (the author
+# did it correctly by hand). `ignore_only` freezes the exemptions to the known
+# inherited violations, so anything NEW meets the full bar.
+#
+# Each entry below is a rule the inherited surface cannot satisfy without a
+# breaking rename. Adding to these lists should be a conscious act; needing to
+# is a signal the change is renaming a shipped surface.
 modules:
-  # lexicon-messages — async HermesMQ message contracts
+  # lexicon-messages — async HermesMQ message contracts. Ours, still evolving,
+  # no exemptions: this one meets STANDARD outright.
   - path: messages/src/main/protobuf
     lint:
       use:
         - STANDARD
 
-  # lexicon-hermes-grpc — HermesMQ topic admin + pub/sub (inherited surface)
+  # lexicon-hermes-grpc — HermesMQ topic admin + pub/sub (inherited surface).
+  # `PulledMessage` is the response for both StreamMessages and Consume, and
+  # `StreamRequest` predates the StreamMessagesRequest convention. Renaming
+  # either breaks the HermesMQ server and every client.
   - path: hermes-grpc/src/main/protobuf
     lint:
       use:
-        - BASIC
+        - STANDARD
+      ignore_only:
+        RPC_REQUEST_STANDARD_NAME:
+          - hermes-grpc/src/main/protobuf/hermesmq/v1/hermes.proto
+        RPC_RESPONSE_STANDARD_NAME:
+          - hermes-grpc/src/main/protobuf/hermesmq/v1/hermes.proto
+        RPC_REQUEST_RESPONSE_UNIQUE:
+          - hermes-grpc/src/main/protobuf/hermesmq/v1/hermes.proto
 
-  # lexicon-grpc — Apollo object-storage service (inherited surface)
+  # lexicon-grpc — Apollo object-storage service (inherited surface). The
+  # package is `apollostorage.grpc` with no version suffix, the service is
+  # `ObjectApi` rather than `ObjectApiService`, and `BucketResponse` /
+  # `ObjectMetadata` are shared across RPCs. All four predate Lexicon; the whole
+  # point of the move was that apollo-storage compiles unchanged against it.
   - path: src/main/protobuf
     lint:
       use:
-        - BASIC
+        - STANDARD
+      ignore_only:
+        PACKAGE_VERSION_SUFFIX:
+          - src/main/protobuf/apollostorage/grpc/object_api.proto
+        SERVICE_SUFFIX:
+          - src/main/protobuf/apollostorage/grpc/object_api.proto
+        RPC_RESPONSE_STANDARD_NAME:
+          - src/main/protobuf/apollostorage/grpc/object_api.proto
+        RPC_REQUEST_RESPONSE_UNIQUE:
+          - src/main/protobuf/apollostorage/grpc/object_api.proto
 
 # FILE is buf's strictest category: it catches both wire-incompatible changes
 # (changed/reused field numbers or types) and source-incompatible ones (renamed

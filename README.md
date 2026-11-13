@@ -57,14 +57,17 @@ buf breaking --against ".git#tag=$(git tag -l 'v*' --sort=-v:refname | head -1)"
 
 `buf.yaml` is a v2 workspace over the three proto roots. Two things to know:
 
-- **Lint bar differs by module.** `messages` is ours and still evolving, so it sits at `STANDARD`.
-  The Apollo and HermesMQ roots host surfaces that *moved* here unchanged, and `STANDARD` would
-  demand consumer-breaking renames (`apollostorage.grpc.v1`, `ObjectApiService`, a distinct
-  response type per RPC) — so they sit at `BASIC`, which keeps every casing/structure rule and
-  drops only the rename-demanding conventions.
+- **Every module is held to `STANDARD`.** The Apollo and HermesMQ roots host surfaces that *moved*
+  here unchanged, and a few `STANDARD` rules would demand consumer-breaking renames
+  (`apollostorage.grpc.v1`, `ObjectApiService`, a distinct response type per RPC). Those are
+  exempted **per rule, per file** via `ignore_only` rather than by dropping the module to a lower
+  category — so anything *new* in those files still meets the full bar. Adding to an `ignore_only`
+  list should be a conscious act; needing to usually means a change is renaming a shipped surface.
 - **`--against-config` is required** when comparing against a tag older than `buf.yaml` itself:
   that tree has no module config, so buf would otherwise read it as one root-level module and fail
   to resolve the protos' imports.
+
+Note that `ignore_only` paths are **workspace-relative**, not relative to the module root.
 
 ## Consuming (JVM)
 

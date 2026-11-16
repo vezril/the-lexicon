@@ -17,12 +17,12 @@
 
 ## 2. Follow-up in hermesmq (not this repo)
 
-- [ ] 2.1 Bump the `lexicon-hermes-grpc` pin in `hermesmq`
-- [ ] 2.2 Wire `start_from` and both `ttl_seconds` fields through the gRPC services, mapping UNSPECIFIED to NOW
-- [ ] 2.4 Populate `CreateSubscriptionResponse.effective_start_from` with the position actually
+- [x] 2.1 Bump the `lexicon-hermes-grpc` pin in `hermesmq` — vezril/hermesmq#136 (0.8.0 -> 0.9.0)
+- [x] 2.2 Wire `start_from` and both `ttl_seconds` fields through the gRPC services, mapping UNSPECIFIED to NOW — vezril/hermesmq#136
+- [x] 2.4 (vezril/hermesmq#138) Populate `CreateSubscriptionResponse.effective_start_from` with the position actually
       applied, and `Topic.ttl_seconds` on `GetTopic`/`UpdateTopic` — until it does, both read as
       zero, which is exactly the "old broker" signal they are designed to give
-- [ ] 2.3 Remove the "gRPC parity" row from the hermesmq roadmap
+- [x] 2.3 Remove the "gRPC parity" row from the hermesmq roadmap — vezril/hermesmq#136
 
 ## Workflow follow-up
 
